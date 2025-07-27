@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Simple Random Sampling</title>
+  <title>Simple Random Sampling Unik Global</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
@@ -13,7 +13,7 @@
   </style>
 </head>
 <body>
-  <h2>Simple Random Sampling - Semua Puskesmas</h2>
+  <h2>Simple Random Sampling (Responden Unik Global)</h2>
 
   <form id="samplingForm" onsubmit="handleGenerate(event)">
     <label>Jumlah Populasi:</label>
@@ -45,6 +45,15 @@ const dataPuskesmas = [
 
 let finalData = [];
 
+function getUniqueRandoms(n, max) {
+  const arr = Array.from({ length: max }, (_, i) => i + 1);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, n).sort((a,b) => a - b);
+}
+
 function handleGenerate(event) {
   event.preventDefault();
 
@@ -54,19 +63,19 @@ function handleGenerate(event) {
 
   let table = `<table><tr>
     <th>No</th><th>Nama Puskesmas</th><th>Jumlah Populasi</th>
-    <th>Jumlah Sampel</th><th>Responden Acak</th></tr>`;
+    <th>Jumlah Sampel</th><th>Responden Global Acak</th></tr>`;
   let rows = [];
   let jumlahSampelFix = [];
 
-  // Hitung proporsi alokasi sampel
+  // Alokasi proporsional
   let totalS = 0;
-  dataPuskesmas.forEach(([nama, pop]) => {
+  dataPuskesmas.forEach(([_, pop]) => {
     let sampel = Math.round(pop / totalPopulasi * totalSampel);
     jumlahSampelFix.push(sampel);
     totalS += sampel;
   });
 
-  // Koreksi selisih
+  // Koreksi jumlah total agar tepat 109
   let selisih = totalS - totalSampel;
   while (selisih !== 0) {
     let idx = selisih > 0
@@ -76,19 +85,25 @@ function handleGenerate(event) {
     selisih += selisih > 0 ? -1 : 1;
   }
 
+  // Ambil 109 angka unik acak dari 1–1061
+  const globalResponden = getUniqueRandoms(totalSampel, totalPopulasi);
+  let pointer = 0;
+
   dataPuskesmas.forEach(([nama, pop], i) => {
     const s = jumlahSampelFix[i];
-    const acak = s > 0 ? Array.from({length: pop}, (_, i) => i + 1).sort(() => 0.5 - Math.random()).slice(0, s).sort((a,b) => a - b) : [];
+    const acak = globalResponden.slice(pointer, pointer + s);
+    pointer += s;
+
     rows.push({
       No: i + 1,
       "Nama Puskesmas": nama,
       "Jumlah Populasi": pop,
       "Jumlah Sampel": s,
-      "Responden Acak": acak.join(", ")
+      "Responden Global Acak": acak.join(", ")
     });
 
     table += `<tr>
-      <td class="center">${i+1}</td>
+      <td class="center">${i + 1}</td>
       <td>${nama}</td>
       <td class="center">${pop}</td>
       <td class="center">${s}</td>
@@ -114,7 +129,7 @@ function downloadExcel() {
   const ws = XLSX.utils.json_to_sheet(finalData);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Data Sampel");
-  XLSX.writeFile(wb, "data_sampel.xlsx");
+  XLSX.writeFile(wb, "data_sampel_global_unik.xlsx");
 }
 </script>
 </body>
