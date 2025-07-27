@@ -1,126 +1,105 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Simple Random Sampling</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    h1 { color: #2c3e50; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background-color: #f0f0f0; }
-    input[type="number"] { width: 100px; margin-right: 10px; }
-    button { padding: 8px 16px; cursor: pointer; }
-    .footer { margin-top: 20px; font-weight: bold; }
-  </style>
+  <meta charset="UTF-8">
+  <title>Simple Random Sampling Per Puskesmas</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-  <h1>Simple Random Sampling Puskesmas</h1>
+  <h2>Simple Random Sampling Per Puskesmas</h2>
+  <label>Total Populasi:</label>
+  <input type="number" id="totalPopulasi" value="1061" />
+  <label>Jumlah Sampel:</label>
+  <input type="number" id="jumlahSampel" value="109" />
+  <button onclick="hitungSampel()">Hitung</button>
 
-  <label>Total Populasi: <input type="number" id="totalPop" value="1061" /></label>
-  <label>Jumlah Sampel: <input type="number" id="totalSampel" value="109" /></label>
-  <button onclick="generateSampling()">Hitung</button>
-
-  <div id="tabelHasil"></div>
+  <table border="1" id="tabelHasil" style="margin-top: 20px">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Nama Puskesmas</th>
+        <th>Jumlah Populasi</th>
+        <th>Range Responden</th>
+        <th>Jumlah Sampel</th>
+        <th>Nomor Responden</th>
+      </tr>
+    </thead>
+    <tbody id="bodyTabel"></tbody>
+  </table>
 
   <script>
-    const dataPuskesmas = [
-      ["PRAGAAN", 53], ["BLUTO", 37], ["SARONGGI", 27], ["GILI GENTING", 25], ["TALANGO", 27],
-      ["KALIANGET", 34], ["PANDIAN", 23], ["PAMOLOKAN", 26], ["BATUAN", 25], ["LENTENG", 36],
-      ["MONCEK TENGAH", 21], ["GANDING", 43], ["GULUK-GULUK", 43], ["PASONGSONGAN", 37],
-      ["AMBUNTEN", 48], ["RUBARU", 38], ["DASUK", 27], ["MANDING", 35], ["BATU PUTIH", 28],
-      ["GAPURA", 36], ["BATANG BATANG", 40], ["LEGUNG TIMUR", 25], ["DUNGKEK", 27],
-      ["NONGGUNONG", 22], ["GAYAM", 31], ["RAAS", 17], ["SAPEKEN", 49], ["ARJASA", 108],
-      ["KANGAYAN", 54], ["MASALEMBU", 19]
+    const dataPopulasi = [
+      { nama: "PRAGAAN", jumlah: 53 },
+      { nama: "BLUTO", jumlah: 37 },
+      { nama: "SARONGGI", jumlah: 27 },
+      { nama: "GILI GENTING", jumlah: 25 },
+      { nama: "TALANGO", jumlah: 27 },
+      { nama: "KALIANGET", jumlah: 34 },
+      { nama: "PANDIAN", jumlah: 23 },
+      { nama: "PAMOLOKAN", jumlah: 26 },
+      { nama: "BATUAN", jumlah: 25 },
+      { nama: "LENTENG", jumlah: 36 },
+      { nama: "MONCEK TENGAH", jumlah: 21 },
+      { nama: "GANDING", jumlah: 43 },
+      { nama: "GULUK-GULUK", jumlah: 43 },
+      { nama: "KOTA SUMENEP", jumlah: 47 },
+      { nama: "AMBUNTEN", jumlah: 42 },
+      { nama: "RUBARU", jumlah: 33 },
+      { nama: "BATANG-BATANG", jumlah: 36 },
+      { nama: "DASUK", jumlah: 33 },
+      { nama: "PASONGSONGAN", jumlah: 49 },
+      { nama: "MASALEMBU", jumlah: 27 }
     ];
 
-    function generateSampling() {
-      const totalPop = parseInt(document.getElementById("totalPop").value);
-      const totalSampel = parseInt(document.getElementById("totalSampel").value);
-
-      // Hitung proporsi dan jumlah sampel per puskesmas
-      let hasil = dataPuskesmas.map(([nama, pop], i) => {
-        return {
-          no: i + 1,
-          nama,
-          pop,
-          proporsi: pop / totalPop,
-          sampel: 0,
-          responden: []
-        };
-      });
-
-      // Alokasi awal jumlah sampel
-      let alokasi = hasil.map(h => Math.floor(h.proporsi * totalSampel));
-      let totalAwal = alokasi.reduce((a, b) => a + b, 0);
-      let sisa = totalSampel - totalAwal;
-
-      // Tambahkan sisa berdasarkan proporsi tertinggi
-      hasil.forEach((h, i) => h.sampel = alokasi[i]);
-      hasil.sort((a, b) => b.proporsi - a.proporsi);
-      for (let i = 0; i < sisa; i++) hasil[i].sampel++;
-
-      // Ambil responden acak unik dari 1-109
-      let semuaNomor = Array.from({ length: totalSampel }, (_, i) => i + 1);
-      shuffleArray(semuaNomor);
-
-      let index = 0;
-      hasil.forEach(h => {
-        h.responden = semuaNomor.slice(index, index + h.sampel);
-        index += h.sampel;
-      });
-
-      // Tampilkan tabel
-      hasil.sort((a, b) => a.no - b.no);
-      let html = `
-        <table>
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>Nama Puskesmas</th>
-              <th>Jumlah Populasi</th>
-              <th>Jumlah Sampel</th>
-              <th>Nomor Responden</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      hasil.forEach(h => {
-        html += `
-          <tr>
-            <td>${h.no}</td>
-            <td>${h.nama}</td>
-            <td>${h.pop}</td>
-            <td>${h.sampel}</td>
-            <td>${h.responden.join(", ")}</td>
-          </tr>
-        `;
-      });
-
-      html += `
-          </tbody>
-          <tfoot>
-            <tr>
-              <td></td>
-              <td><strong>TOTAL</strong></td>
-              <td><strong>${hasil.reduce((a, b) => a + b.pop, 0)}</strong></td>
-              <td><strong>${hasil.reduce((a, b) => a + b.sampel, 0)}</strong></td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      `;
-
-      document.getElementById("tabelHasil").innerHTML = html;
-    }
-
-    function shuffleArray(array) {
+    function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
       }
+      return array;
+    }
+
+    function hitungSampel() {
+      const totalPopulasi = parseInt(document.getElementById("totalPopulasi").value);
+      const jumlahSampel = parseInt(document.getElementById("jumlahSampel").value);
+
+      const bodyTabel = document.getElementById("bodyTabel");
+      bodyTabel.innerHTML = "";
+
+      let nomorAwal = 1;
+      let totalSample = 0;
+
+      for (let i = 0; i < dataPopulasi.length; i++) {
+        const puskesmas = dataPopulasi[i];
+        const range = puskesmas.jumlah;
+        const nomorAkhir = nomorAwal + range - 1;
+        const rangeArray = Array.from({ length: range }, (_, j) => nomorAwal + j);
+
+        const proporsi = puskesmas.jumlah / totalPopulasi;
+        let jumlahSampelPuskesmas = Math.round(jumlahSampel * proporsi);
+
+        if (jumlahSampelPuskesmas > range) jumlahSampelPuskesmas = range;
+
+        totalSample += jumlahSampelPuskesmas;
+
+        const sampelTerpilih = shuffle([...rangeArray]).slice(0, jumlahSampelPuskesmas);
+        sampelTerpilih.sort((a, b) => a - b);
+
+        const row = `<tr>
+            <td>${i + 1}</td>
+            <td>${puskesmas.nama}</td>
+            <td>${puskesmas.jumlah}</td>
+            <td>${nomorAwal} - ${nomorAkhir}</td>
+            <td>${jumlahSampelPuskesmas}</td>
+            <td>${sampelTerpilih.join(", ")}</td>
+          </tr>`;
+
+        bodyTabel.innerHTML += row;
+        nomorAwal = nomorAkhir + 1;
+      }
+
+      console.log(`Total Sampel Terpilih: ${totalSample}`);
     }
   </script>
 </body>
