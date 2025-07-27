@@ -8,15 +8,29 @@
     table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
     th { background-color: #eee; }
     .center { text-align: center; }
+    body { font-family: sans-serif; margin: 20px; }
+    input { padding: 5px; margin-right: 10px; width: 120px; }
   </style>
 </head>
 <body>
-  <h2>Simple Random Sampling - Calculator Sample</h2>
-  <button onclick="generateData()">Generate dan Tampilkan</button>
-  <button onclick="downloadExcel()">Unduh Excel</button>
+  <h2>Simple Random Sampling - Semua Puskesmas</h2>
 
-  <div id="tableContainer"></div>
+  <form id="samplingForm" onsubmit="handleGenerate(event)">
+    <label>Jumlah Populasi:</label>
+    <input type="number" id="populasi" required value="1061" />
+    
+    <label>Jumlah Sampel:</label>
+    <input type="number" id="sampel" required value="109" />
+    
+    <label>Derajat Keyakinan:</label>
+    <input type="text" id="keyakinan" required value="95%" />
+    
+    <button type="submit">Generate Sampel</button>
+  </form>
+
+  <div id="tableContainer" style="margin-top: 20px;"></div>
   <p id="totalInfo"></p>
+  <button onclick="downloadExcel()">Unduh Excel</button>
 
 <script>
 const dataPuskesmas = [
@@ -29,17 +43,22 @@ const dataPuskesmas = [
   ["KANGAYAN", 54], ["MASALEMBU", 19]
 ];
 
-const totalPopulasi = 1061;
-const totalSampel = 109;
+let finalData = [];
 
-function generateData() {
+function handleGenerate(event) {
+  event.preventDefault();
+
+  const totalPopulasi = parseInt(document.getElementById('populasi').value);
+  const totalSampel = parseInt(document.getElementById('sampel').value);
+  const keyakinan = document.getElementById('keyakinan').value;
+
   let table = `<table><tr>
     <th>No</th><th>Nama Puskesmas</th><th>Jumlah Populasi</th>
     <th>Jumlah Sampel</th><th>Responden Acak</th></tr>`;
   let rows = [];
   let jumlahSampelFix = [];
 
-  // Hitung alokasi sampel
+  // Hitung proporsi alokasi sampel
   let totalS = 0;
   dataPuskesmas.forEach(([nama, pop]) => {
     let sampel = Math.round(pop / totalPopulasi * totalSampel);
@@ -47,7 +66,7 @@ function generateData() {
     totalS += sampel;
   });
 
-  // Koreksi jika != 109
+  // Koreksi selisih
   let selisih = totalS - totalSampel;
   while (selisih !== 0) {
     let idx = selisih > 0
@@ -61,8 +80,13 @@ function generateData() {
     const s = jumlahSampelFix[i];
     const acak = s > 0 ? Array.from({length: pop}, (_, i) => i + 1).sort(() => 0.5 - Math.random()).slice(0, s).sort((a,b) => a - b) : [];
     rows.push({
-      no: i+1, nama, pop, s, acak: acak.join(", ")
+      No: i + 1,
+      "Nama Puskesmas": nama,
+      "Jumlah Populasi": pop,
+      "Jumlah Sampel": s,
+      "Responden Acak": acak.join(", ")
     });
+
     table += `<tr>
       <td class="center">${i+1}</td>
       <td>${nama}</td>
@@ -75,18 +99,21 @@ function generateData() {
   table += "</table>";
   document.getElementById("tableContainer").innerHTML = table;
   document.getElementById("totalInfo").innerHTML =
-    `<strong>Total Populasi:</strong> ${totalPopulasi} &nbsp;&nbsp;&nbsp; 
+    `<strong>Derajat Keyakinan:</strong> ${keyakinan} &nbsp;&nbsp; | 
+     <strong>Total Populasi:</strong> ${totalPopulasi} &nbsp;&nbsp; | 
      <strong>Total Sampel:</strong> ${totalSampel}`;
 
-  window.finalData = rows;
+  finalData = rows;
 }
 
 function downloadExcel() {
-  if (!window.finalData) return alert("Silakan klik 'Generate' dulu.");
-
-  const ws = XLSX.utils.json_to_sheet(window.finalData);
+  if (finalData.length === 0) {
+    alert("Silakan generate data terlebih dahulu.");
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(finalData);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sampling");
+  XLSX.utils.book_append_sheet(wb, ws, "Data Sampel");
   XLSX.writeFile(wb, "data_sampel.xlsx");
 }
 </script>
