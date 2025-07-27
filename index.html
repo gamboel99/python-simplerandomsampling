@@ -50,4 +50,45 @@ function generateData() {
   // Koreksi jika != 109
   let selisih = totalS - totalSampel;
   while (selisih !== 0) {
-    let idx =
+    let idx = selisih > 0
+      ? jumlahSampelFix.indexOf(Math.max(...jumlahSampelFix))
+      : jumlahSampelFix.indexOf(Math.min(...jumlahSampelFix));
+    jumlahSampelFix[idx] += selisih > 0 ? -1 : 1;
+    selisih += selisih > 0 ? -1 : 1;
+  }
+
+  dataPuskesmas.forEach(([nama, pop], i) => {
+    const s = jumlahSampelFix[i];
+    const acak = s > 0 ? Array.from({length: pop}, (_, i) => i + 1).sort(() => 0.5 - Math.random()).slice(0, s).sort((a,b) => a - b) : [];
+    rows.push({
+      no: i+1, nama, pop, s, acak: acak.join(", ")
+    });
+    table += `<tr>
+      <td class="center">${i+1}</td>
+      <td>${nama}</td>
+      <td class="center">${pop}</td>
+      <td class="center">${s}</td>
+      <td>${acak.join(", ")}</td>
+    </tr>`;
+  });
+
+  table += "</table>";
+  document.getElementById("tableContainer").innerHTML = table;
+  document.getElementById("totalInfo").innerHTML =
+    `<strong>Total Populasi:</strong> ${totalPopulasi} &nbsp;&nbsp;&nbsp; 
+     <strong>Total Sampel:</strong> ${totalSampel}`;
+
+  window.finalData = rows;
+}
+
+function downloadExcel() {
+  if (!window.finalData) return alert("Silakan klik 'Generate' dulu.");
+
+  const ws = XLSX.utils.json_to_sheet(window.finalData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sampling");
+  XLSX.writeFile(wb, "data_sampel.xlsx");
+}
+</script>
+</body>
+</html>
