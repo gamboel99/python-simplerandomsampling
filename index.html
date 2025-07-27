@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Random Sampling Per Puskesmas</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    h1 { color: #333; }
+    select, button { font-size: 16px; padding: 6px; margin-top: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #eee; }
+  </style>
+</head>
+<body>
+
+  <h1>Simple Random Sampling Per Puskesmas</h1>
+  <p>Pilih Puskesmas dan ambil sampel acak dari jumlah populasi perawat:</p>
+  <select id="puskesmasSelect"></select>
+  <button onclick="ambilSampel()">Ambil Sampel</button>
+  <button id="unduhExcel" onclick="unduhExcel()" style="display:none;">Unduh Excel</button>
+
+  <table id="hasilTabel" style="display:none;">
+    <thead>
+      <tr><th>No</th><th>Nomor Perawat</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
