@@ -1,45 +1,53 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Simple Random Sampling - Semua Puskesmas</title>
+  <meta charset="UTF-8" />
+  <title>Simple Random Sampling</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
-    h1 { color: #333; }
-    button { font-size: 16px; padding: 8px 16px; margin-top: 10px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: #fff; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
     th { background-color: #eee; }
+    .center { text-align: center; }
   </style>
 </head>
 <body>
+  <h2>Simple Random Sampling - Semua Puskesmas</h2>
+  <button onclick="generateData()">Generate dan Tampilkan</button>
+  <button onclick="downloadExcel()">Unduh Excel</button>
 
-  <h1>Simple Random Sampling - Semua Puskesmas</h1>
-  <button onclick="generateAll()">Ambil Sampel & Unduh Excel</button>
+  <div id="tableContainer"></div>
+  <p id="totalInfo"></p>
 
-  <table id="dataTable">
-    <thead>
-      <tr>
-        <th>No</th>
-        <th>Nama Puskesmas</th>
-        <th>Jumlah Populasi</th>
-        <th>Jumlah Sampel</th>
-        <th>Nomor Responden yang Diambil</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-    <tfoot>
-      <tr>
-        <th colspan="2">Total</th>
-        <th id="totalPopulasi"></th>
-        <th id="totalSampel"></th>
-        <th></th>
-      </tr>
-    </tfoot>
-  </table>
+<script>
+const dataPuskesmas = [
+  ["PRAGAAN", 53], ["BLUTO", 37], ["SARONGGI", 27], ["GILI GENTING", 25], ["TALANGO", 27],
+  ["KALIANGET", 34], ["PANDIAN", 23], ["PAMOLOKAN", 26], ["BATUAN", 25], ["LENTENG", 36],
+  ["MONCEK TENGAH", 21], ["GANDING", 43], ["GULUK-GULUK", 43], ["PASONGSONGAN", 37],
+  ["AMBUNTEN", 48], ["RUBARU", 38], ["DASUK", 27], ["MANDING", 35], ["BATU PUTIH", 28],
+  ["GAPURA", 36], ["BATANG BATANG", 40], ["LEGUNG TIMUR", 25], ["DUNGKEK", 27],
+  ["NONGGUNONG", 22], ["GAYAM", 31], ["RAAS", 17], ["SAPEKEN", 49], ["ARJASA", 108],
+  ["KANGAYAN", 54], ["MASALEMBU", 19]
+];
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="script.js"></script>
+const totalPopulasi = 1061;
+const totalSampel = 109;
 
-</body>
-</html>
+function generateData() {
+  let table = `<table><tr>
+    <th>No</th><th>Nama Puskesmas</th><th>Jumlah Populasi</th>
+    <th>Jumlah Sampel</th><th>Responden Acak</th></tr>`;
+  let rows = [];
+  let jumlahSampelFix = [];
+
+  // Hitung alokasi sampel
+  let totalS = 0;
+  dataPuskesmas.forEach(([nama, pop]) => {
+    let sampel = Math.round(pop / totalPopulasi * totalSampel);
+    jumlahSampelFix.push(sampel);
+    totalS += sampel;
+  });
+
+  // Koreksi jika != 109
+  let selisih = totalS - totalSampel;
+  while (selisih !== 0) {
+    let idx =
