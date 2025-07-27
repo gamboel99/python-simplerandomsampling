@@ -1,67 +1,58 @@
+let puskesmasData = [];
 
-const dataPuskesmas = {
-  "PRAGAAN": 53, "BLUTO": 37, "SARONGGI": 27, "GILI GENTING": 25,
-  "TALANGO": 27, "KALIANGET": 34, "PANDIAN": 23, "PAMOLOKAN": 26,
-  "BATUAN": 25, "LENTENG": 36, "MONCEK TENGAH": 21, "GANDING": 43,
-  "GULUK-GULUK": 43, "PASONGSONGAN": 37, "AMBUNTEN": 48, "RUBARU": 38,
-  "DASUK": 27, "MANDING": 35, "BATU PUTIH": 28, "GAPURA": 36,
-  "BATANG BATANG": 40, "LEGUNG TIMUR": 25, "DUNGKEK": 27,
-  "NONGGUNONG": 22, "GAYAM": 31, "RAAS": 17, "SAPEKEN": 49,
-  "ARJASA": 108, "KANGAYAN": 54, "MASALEMBU": 19
-};
+fetch('puskesmas.json')
+  .then(res => res.json())
+  .then(data => puskesmasData = data);
 
-const totalPopulasi = 1061;
-const totalSampel = 109;
+function hitungSampling() {
+  const totalPopulasi = parseInt(document.getElementById('totalPopulasi').value);
+  const jumlahSampel = parseInt(document.getElementById('jumlahSampel').value);
+  const tbody = document.querySelector('#hasilSampling tbody');
+  tbody.innerHTML = "";
 
-function getRandomSample(jumlah, n) {
-  const populasi = Array.from({ length: jumlah }, (_, i) => i + 1);
-  const sampel = [];
-  while (sampel.length < n) {
-    const idx = Math.floor(Math.random() * populasi.length);
-    sampel.push(populasi.splice(idx, 1)[0]);
+  const total = puskesmasData.reduce((sum, row) => sum + row.populasi, 0);
+  if (total !== totalPopulasi) {
+    alert(`Total populasi input (${totalPopulasi}) tidak sama dengan total dari data (${total})`);
+    return;
   }
-  return sampel.sort((a, b) => a - b);
+
+  let globalRespondenCounter = 1;
+
+  puskesmasData.forEach((row, i) => {
+    const proporsi = row.populasi / totalPopulasi;
+    const jumlahSampelPuskesmas = Math.round(proporsi * jumlahSampel);
+
+    const start = globalRespondenCounter;
+    const end = globalRespondenCounter + row.populasi - 1;
+    const range = [...Array(row.populasi).keys()].map(x => x + start);
+    const sample = shuffle(range).slice(0, jumlahSampelPuskesmas);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${row.nama}</td>
+      <td>${row.populasi}</td>
+      <td>${start} - ${end}</td>
+      <td>${sample.length}</td>
+      <td>${sample.sort((a, b) => a - b).join(', ')}</td>
+    `;
+    tbody.appendChild(tr);
+
+    globalRespondenCounter += row.populasi;
+  });
 }
 
-function generateAll() {
-  const tbody = document.querySelector("#dataTable tbody");
-  tbody.innerHTML = "";
-  let totalPop = 0;
-  let totalSamp = 0;
-  const dataExport = [];
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
 
-  Object.entries(dataPuskesmas).forEach(([nama, jumlah], index) => {
-    const nSample = Math.round(jumlah / totalPopulasi * totalSampel);
-    const sampel = getRandomSample(jumlah, nSample);
-
-    totalPop += jumlah;
-    totalSamp += nSample;
-
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${nama}</td>
-      <td>${jumlah}</td>
-      <td>${nSample}</td>
-      <td>${sampel.join(", ")}</td>
-    `;
-    tbody.appendChild(row);
-
-    dataExport.push({
-      No: index + 1,
-      Puskesmas: nama,
-      "Jumlah Populasi": jumlah,
-      "Jumlah Sampel": nSample,
-      "Responden Terpilih": sampel.join(", ")
-    });
-  });
-
-  document.getElementById("totalPopulasi").textContent = totalPop;
-  document.getElementById("totalSampel").textContent = totalSamp;
-
-  // Buat file Excel
-  const worksheet = XLSX.utils.json_to_sheet(dataExport);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Sampel");
-  XLSX.writeFile(workbook, "sampel_semua_puskesmas.xlsx");
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(document.getElementById('hasilSampling'));
+  XLSX.utils.book_append_sheet(wb, ws, "Sampel Responden");
+  XLSX.writeFile(wb, "hasil_sampling_puskesmas.xlsx");
 }
