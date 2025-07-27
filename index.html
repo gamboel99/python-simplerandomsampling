@@ -1,106 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Simple Random Sampling Per Puskesmas</title>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <title>Simple Random Sampling Puskesmas</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Simple Random Sampling Per Puskesmas</h2>
-  <label>Total Populasi:</label>
-  <input type="number" id="totalPopulasi" value="1061" />
-  <label>Jumlah Sampel:</label>
-  <input type="number" id="jumlahSampel" value="109" />
-  <button onclick="hitungSampel()">Hitung</button>
-
-  <table border="1" id="tabelHasil" style="margin-top: 20px">
+  <h2>Simple Random Sampling Responden Puskesmas</h2>
+  <div class="form">
+    <label>Total Populasi: <input type="number" id="totalPopulasi" value="1061"></label>
+    <label>Jumlah Sampel: <input type="number" id="jumlahSampel" value="109"></label>
+    <button onclick="hitungSampling()">Hitung</button>
+    <button onclick="exportExcel()">Unduh Excel</button>
+  </div>
+  <table id="hasilSampling">
     <thead>
       <tr>
         <th>No</th>
         <th>Nama Puskesmas</th>
         <th>Jumlah Populasi</th>
-        <th>Range Responden</th>
+        <th>Range No Urut</th>
         <th>Jumlah Sampel</th>
-        <th>Nomor Responden</th>
+        <th>Nomor Responden Acak</th>
       </tr>
     </thead>
-    <tbody id="bodyTabel"></tbody>
+    <tbody></tbody>
   </table>
-
-  <script>
-    const dataPopulasi = [
-      { nama: "PRAGAAN", jumlah: 53 },
-      { nama: "BLUTO", jumlah: 37 },
-      { nama: "SARONGGI", jumlah: 27 },
-      { nama: "GILI GENTING", jumlah: 25 },
-      { nama: "TALANGO", jumlah: 27 },
-      { nama: "KALIANGET", jumlah: 34 },
-      { nama: "PANDIAN", jumlah: 23 },
-      { nama: "PAMOLOKAN", jumlah: 26 },
-      { nama: "BATUAN", jumlah: 25 },
-      { nama: "LENTENG", jumlah: 36 },
-      { nama: "MONCEK TENGAH", jumlah: 21 },
-      { nama: "GANDING", jumlah: 43 },
-      { nama: "GULUK-GULUK", jumlah: 43 },
-      { nama: "KOTA SUMENEP", jumlah: 47 },
-      { nama: "AMBUNTEN", jumlah: 42 },
-      { nama: "RUBARU", jumlah: 33 },
-      { nama: "BATANG-BATANG", jumlah: 36 },
-      { nama: "DASUK", jumlah: 33 },
-      { nama: "PASONGSONGAN", jumlah: 49 },
-      { nama: "MASALEMBU", jumlah: 27 }
-    ];
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    function hitungSampel() {
-      const totalPopulasi = parseInt(document.getElementById("totalPopulasi").value);
-      const jumlahSampel = parseInt(document.getElementById("jumlahSampel").value);
-
-      const bodyTabel = document.getElementById("bodyTabel");
-      bodyTabel.innerHTML = "";
-
-      let nomorAwal = 1;
-      let totalSample = 0;
-
-      for (let i = 0; i < dataPopulasi.length; i++) {
-        const puskesmas = dataPopulasi[i];
-        const range = puskesmas.jumlah;
-        const nomorAkhir = nomorAwal + range - 1;
-        const rangeArray = Array.from({ length: range }, (_, j) => nomorAwal + j);
-
-        const proporsi = puskesmas.jumlah / totalPopulasi;
-        let jumlahSampelPuskesmas = Math.round(jumlahSampel * proporsi);
-
-        if (jumlahSampelPuskesmas > range) jumlahSampelPuskesmas = range;
-
-        totalSample += jumlahSampelPuskesmas;
-
-        const sampelTerpilih = shuffle([...rangeArray]).slice(0, jumlahSampelPuskesmas);
-        sampelTerpilih.sort((a, b) => a - b);
-
-        const row = `<tr>
-            <td>${i + 1}</td>
-            <td>${puskesmas.nama}</td>
-            <td>${puskesmas.jumlah}</td>
-            <td>${nomorAwal} - ${nomorAkhir}</td>
-            <td>${jumlahSampelPuskesmas}</td>
-            <td>${sampelTerpilih.join(", ")}</td>
-          </tr>`;
-
-        bodyTabel.innerHTML += row;
-        nomorAwal = nomorAkhir + 1;
-      }
-
-      console.log(`Total Sampel Terpilih: ${totalSample}`);
-    }
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
