@@ -2,32 +2,44 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Simple Random Sampling Per Puskesmas</title>
+  <title>Simple Random Sampling - Semua Puskesmas</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
     h1 { color: #333; }
-    select, button { font-size: 16px; padding: 6px; margin-top: 10px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    button { font-size: 16px; padding: 8px 16px; margin-top: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: #fff; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #eee; }
   </style>
 </head>
 <body>
 
-  <h1>Simple Random Sampling Per Puskesmas</h1>
-  <p>Pilih Puskesmas dan ambil sampel acak dari jumlah populasi perawat:</p>
-  <select id="puskesmasSelect"></select>
-  <button onclick="ambilSampel()">Ambil Sampel</button>
-  <button id="unduhExcel" onclick="unduhExcel()" style="display:none;">Unduh Excel</button>
+  <h1>Simple Random Sampling - Semua Puskesmas</h1>
+  <button onclick="generateAll()">Ambil Sampel & Unduh Excel</button>
 
-  <table id="hasilTabel" style="display:none;">
+  <table id="dataTable">
     <thead>
-      <tr><th>No</th><th>Nomor Perawat</th></tr>
+      <tr>
+        <th>No</th>
+        <th>Nama Puskesmas</th>
+        <th>Jumlah Populasi</th>
+        <th>Jumlah Sampel</th>
+        <th>Nomor Responden yang Diambil</th>
+      </tr>
     </thead>
     <tbody></tbody>
+    <tfoot>
+      <tr>
+        <th colspan="2">Total</th>
+        <th id="totalPopulasi"></th>
+        <th id="totalSampel"></th>
+        <th></th>
+      </tr>
+    </tfoot>
   </table>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="script.js"></script>
+
 </body>
 </html>
